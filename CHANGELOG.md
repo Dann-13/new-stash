@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Panel de DeepSeek: saldo total, moneda y disponibilidad, actualizado cada 60 s.
+- Clave solo por variable de entorno `DEEPSEEK_API_KEY`; nunca se guarda ni se registra.
+- Consulta HTTPS en hilo aparte: la UI no espera la red. Sin clave, panel oculto y cero conexiones.
+- Errores de red o HTTP con mensajes genéricos que no incluyen la clave.
+
 ## 0.2.0
 
 - Costo por día en la gráfica de tokens (línea `▁▂▃` bajo las barras).

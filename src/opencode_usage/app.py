@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import os
 import sqlite3
 import time
 from datetime import datetime
 from pathlib import Path
 
+from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -17,10 +19,12 @@ from .config import Settings
 from .data import db, queries
 from .data.queries import MsgUsage
 from .format import format_cost, format_percent, format_tokens
+from .providers import deepseek
 from .widgets.agents_table import AgentsTable
 from .widgets.budget_bar import BudgetBar
 from .widgets.heatmap import Heatmap
 from .widgets.models_table import ModelsTable
+from .widgets.provider_panel import ProviderPanel
 from .widgets.session_live import SessionLive
 from .widgets.stat_card import StatCard
 from .widgets.tokens_by_day import TokensByDay
@@ -31,6 +35,8 @@ _RANGES: dict[str, int | None] = {
     "90": 90,
     "all": None,
 }
+
+DEEPSEEK_POLL_SECONDS = 60
 
 
 class UsageApp(App):
@@ -75,6 +81,7 @@ class UsageApp(App):
         with Vertical(id="status"):
             yield BudgetBar(id="budget")
             yield SessionLive(id="session")
+            yield ProviderPanel(id="provider")
         with Horizontal(id="main"):
             with Vertical(id="left"):
                 yield TokensByDay(id="tokens-by-day")
@@ -90,6 +97,34 @@ class UsageApp(App):
             self.notify(self.settings.config_error, severity="warning", timeout=10)
         self.refresh_data()
         self.set_interval(self.settings.refresh_seconds, self.refresh_data)
+        self._setup_deepseek()
+
+    def _setup_deepseek(self) -> None:
+        """Muestra el panel solo si el usuario definió DEEPSEEK_API_KEY."""
+        panel = self.query_one("#provider", ProviderPanel)
+        if not os.environ.get("DEEPSEEK_API_KEY"):
+            panel.display = False
+            return
+        panel.set_loading()
+        self.poll_deepseek()
+        self.set_interval(DEEPSEEK_POLL_SECONDS, self.poll_deepseek)
+
+    @work(thread=True, exclusive=True, group="deepseek")
+    def poll_deepseek(self) -> None:
+        """Consulta el saldo en un hilo: la UI nunca espera la red."""
+        key = os.environ.get("DEEPSEEK_API_KEY", "")
+        try:
+            balance = deepseek.fetch_balance(key)
+        except deepseek.DeepSeekError as exc:
+            self.call_from_thread(self._show_deepseek_error, str(exc))
+            return
+        self.call_from_thread(self._show_deepseek_balance, balance)
+
+    def _show_deepseek_balance(self, balance: deepseek.DeepSeekBalance) -> None:
+        self.query_one("#provider", ProviderPanel).set_balance(balance)
+
+    def _show_deepseek_error(self, message: str) -> None:
+        self.query_one("#provider", ProviderPanel).set_error(message)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id and event.button.id.startswith("range-"):

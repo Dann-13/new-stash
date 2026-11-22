@@ -44,7 +44,7 @@ StatCard {
 }
 
 #status {
-    height: 2;
+    height: auto;
     padding: 0 2;
 }
 

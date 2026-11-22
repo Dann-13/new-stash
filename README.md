@@ -103,9 +103,35 @@ La tecla `e` escribe dos archivos en la carpeta desde donde ejecutas la app:
 ## Privacidad y seguridad
 
 - Solo lee `opencode.db` en modo solo lectura. Nunca escribe en ella.
-- No envía datos a internet. No tiene telemetría.
-- Los únicos archivos que crea son los que exportas con `e`.
-- Sin clave de API ni contraseñas: no las pide ni las guarda.
+- Sin telemetría. Los únicos archivos que crea son los que exportas con `e`.
+- La clave de DeepSeek solo se lee de la variable de entorno `DEEPSEEK_API_KEY`.
+  No se pide en pantalla, no se guarda en archivos y no aparece en logs ni errores.
+- Si defines esa clave, la app hace una única consulta HTTPS a
+  `https://api.deepseek.com/user/balance` cada 60 segundos, en un hilo aparte.
+  Solo lee el saldo: no puede gastar ni modificar tu cuenta.
+- Si no defines la clave, no hay ninguna conexión a internet.
+
+## DeepSeek (opcional)
+
+Define la variable de entorno y arranca la app:
+
+Linux:
+
+```bash
+export DEEPSEEK_API_KEY="tu-clave"
+opencode-usage
+```
+
+Windows (PowerShell):
+
+```powershell
+$env:DEEPSEEK_API_KEY = "tu-clave"
+opencode-usage
+```
+
+El panel muestra saldo total, moneda y si hay saldo para llamadas.
+DeepSeek no ofrece endpoint de uso por API: el uso por modelo que ves en las
+tablas viene de la base local de OpenCode.
 
 ## Estructura
 
@@ -115,6 +141,8 @@ src/opencode_usage/
   pricing.py       tabla de precios de modelos (USD por 1M tokens)
   format.py        formatos de números
   export.py        exportación a CSV y Markdown
+  providers/
+    deepseek.py    saldo de DeepSeek (HTTPS, solo lectura, clave por env)
   data/
     db.py          conexión SQLite solo lectura
     models.py      dataclasses de datos
