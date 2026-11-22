@@ -17,7 +17,7 @@ def open_readonly(path: Path | None = None) -> sqlite3.Connection:
     db = Path(path) if path is not None else DEFAULT_DB
     if not db.exists():
         raise FileNotFoundError(f"no existe la base de OpenCode: {db}")
-    uri = f"file:{db.as_posix()}?mode=ro"
+    uri = f"{db.resolve().as_uri()}?mode=ro"
     con = sqlite3.connect(uri, uri=True)
     con.row_factory = sqlite3.Row
     return con

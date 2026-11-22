@@ -8,10 +8,29 @@ Lee en modo solo lectura la base de datos local de OpenCode
 
 ## Requisitos
 
-- Python 3.12+
+- Python 3.11+
 - OpenCode instalado (para tener datos)
 
-## Instalación
+## Instalación en Linux (Debian / Ubuntu)
+
+Debian y Ubuntu bloquean `pip` global, así que se usa un entorno virtual:
+
+```bash
+sudo apt install python3 python3-venv
+cd opencode-usage
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+Alternativa con `pipx` (instala el comando en el sistema sin tocar Python global):
+
+```bash
+sudo apt install pipx
+pipx install -e /ruta/a/opencode-usage
+```
+
+## Instalación en Windows
 
 ```powershell
 cd opencode-usage
@@ -22,11 +41,23 @@ pip install -e ".[dev]"
 
 ## Uso
 
-```powershell
-opencode-usage
+Linux:
+
+```bash
+.venv/bin/opencode-usage
 # o
-python -m opencode_usage
+.venv/bin/python -m opencode_usage
 ```
+
+Windows:
+
+```powershell
+.\.venv\Scripts\opencode-usage.exe
+```
+
+Ruta de la base: `$XDG_DATA_HOME/opencode/opencode.db` (por defecto `~/.local/share/opencode/opencode.db` en Linux, y `%USERPROFILE%\.local\share\opencode\opencode.db` en Windows).
+
+Rendimiento: la app solo relee la base cuando cambia `opencode.db` o su `-wal`. Con OpenCode quieto, consume casi nada de CPU.
 
 Opciones:
 

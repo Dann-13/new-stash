@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-DEFAULT_DB = Path.home() / ".local" / "share" / "opencode" / "opencode.db"
+
+def _default_db() -> Path:
+    base = os.environ.get("XDG_DATA_HOME")
+    root = Path(base) if base else Path.home() / ".local" / "share"
+    return root / "opencode" / "opencode.db"
+
+
+DEFAULT_DB = _default_db()
 
 
 @dataclass(frozen=True)

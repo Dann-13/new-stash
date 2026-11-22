@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import sqlite3
+import time
 from datetime import datetime
+from pathlib import Path
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -48,6 +50,8 @@ class UsageApp(App):
         self.settings = settings or Settings()
         self._days: int | None = self.settings.default_days
         self._msgs: list[MsgUsage] = []
+        self._fingerprint: tuple | None = None
+        self._last_full = 0.0
 
     # ---- composición -------------------------------------------------
     def compose(self) -> ComposeResult:
@@ -90,13 +94,32 @@ class UsageApp(App):
         for btn in self.query(Button):
             if btn.id and btn.id.startswith("range-"):
                 btn.variant = "primary" if btn.id == f"range-{label}" else "default"
-        self.refresh_data()
+        self.refresh_data(force=True)
 
     def action_refresh(self) -> None:
-        self.refresh_data()
+        self.refresh_data(force=True)
 
     # ---- datos --------------------------------------------------------
-    def refresh_data(self) -> None:
+    def _db_fingerprint(self) -> tuple:
+        """Mtime y tamaño de la DB y su -wal. Cambian solo al escribir OpenCode."""
+        db = Path(self.settings.db_path)
+        parts = []
+        for p in (db, Path(f"{db}-wal")):
+            try:
+                st = p.stat()
+                parts.append((st.st_mtime_ns, st.st_size))
+            except OSError:
+                parts.append(None)
+        return tuple(parts)
+
+    def refresh_data(self, force: bool = False) -> None:
+        fp = self._db_fingerprint()
+        now = time.monotonic()
+        # Sin cambios en la DB: no releer. Cada 60 s igual, para que la ventana de días avance.
+        if not force and fp == self._fingerprint and now - self._last_full < 60:
+            return
+        self._fingerprint = fp
+        self._last_full = now
         start = queries.since_ms(self._days)
         try:
             con = db.open_readonly(self.settings.db_path)
