@@ -10,7 +10,6 @@ from pathlib import Path
 
 from textual import work
 from textual.app import App, ComposeResult
-from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Footer, Static
 
@@ -19,6 +18,7 @@ from .config import Settings
 from .data import db, queries
 from .data.queries import MsgUsage
 from .format import format_cost, format_percent, format_tokens
+from .i18n import t
 from .providers import deepseek
 from .widgets.agents_table import AgentsTable
 from .widgets.budget_bar import BudgetBar
@@ -44,16 +44,6 @@ class UsageApp(App):
 
     CSS_PATH = "styles/app.tcss"
     TITLE = "opencode usage"
-
-    BINDINGS = [
-        Binding("q", "quit", "Salir"),
-        Binding("r", "refresh", "Refrescar"),
-        Binding("e", "export", "Exportar"),
-        Binding("1", "set_range('7')", "7 días"),
-        Binding("2", "set_range('30')", "30 días"),
-        Binding("3", "set_range('90')", "90 días"),
-        Binding("4", "set_range('all')", "Todo"),
-    ]
 
     def __init__(self, settings: Settings | None = None) -> None:
         super().__init__()
@@ -93,11 +83,22 @@ class UsageApp(App):
 
     # ---- ciclo de vida ------------------------------------------------
     def on_mount(self) -> None:
+        self._bind_keys()
         if self.settings.config_error:
             self.notify(self.settings.config_error, severity="warning", timeout=10)
         self.refresh_data()
         self.set_interval(self.settings.refresh_seconds, self.refresh_data)
         self._setup_deepseek()
+
+    def _bind_keys(self) -> None:
+        """Enlaza teclas con descripciones traducidas para el Footer."""
+        self.bind("q", "quit", description=t("quit"))
+        self.bind("r", "refresh", description=t("refresh"))
+        self.bind("e", "export", description=t("export"))
+        self.bind("1", "set_range('7')", description=t("days_7"))
+        self.bind("2", "set_range('30')", description=t("days_30"))
+        self.bind("3", "set_range('90')", description=t("days_90"))
+        self.bind("4", "set_range('all')", description=t("all"))
 
     def _setup_deepseek(self) -> None:
         """Muestra el panel solo si el usuario definió DEEPSEEK_API_KEY."""
@@ -146,7 +147,7 @@ class UsageApp(App):
     def action_export(self) -> None:
         """Escribe CSV y Markdown del rango actual en la carpeta de trabajo."""
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        label = "todo" if self._days is None else f"últimos {self._days} días"
+        label = t("range_all") if self._days is None else t("range_days", n=self._days)
         csv_path = Path.cwd() / f"opencode-usage-{stamp}.csv"
         md_path = Path.cwd() / f"opencode-usage-{stamp}.md"
         try:
@@ -159,9 +160,9 @@ class UsageApp(App):
                 queries.by_agent(self._msgs),
             )
         except OSError as exc:
-            self.notify(f"no se pudo exportar: {exc}", severity="error")
+            self.notify(t("export_fail", exc=exc), severity="error")
             return
-        self.notify(f"exportado: {csv_path.name} y {md_path.name}")
+        self.notify(t("export_ok", csv=csv_path.name, md=md_path.name))
 
     # ---- datos --------------------------------------------------------
     def _db_fingerprint(self) -> tuple:
@@ -191,7 +192,7 @@ class UsageApp(App):
             con = db.open_readonly(self.settings.db_path)
         except (FileNotFoundError, sqlite3.Error) as exc:
             self.query_one("#updated", Static).update(
-                f"[red]error: {exc}[/red]"
+                f"[red]{t('db_error', exc=exc)}[/red]"
             )
             return
         with con:
@@ -201,27 +202,27 @@ class UsageApp(App):
                 if budget is not None else []
             )
 
-        t = queries.totals(self._msgs)
+        t_ = queries.totals(self._msgs)
         cards = {
             "#card-input": (
-                "INPUT TOKENS",
-                format_tokens(t.input),
-                f"{format_percent(t.cache_hit_ratio)} from cache",
+                t("card_input"),
+                format_tokens(t_.input),
+                t("from_cache", pct=format_percent(t_.cache_hit_ratio)),
             ),
             "#card-output": (
-                "OUTPUT TOKENS",
-                format_tokens(t.output),
-                f"{format_tokens(t.turns and t.output // t.turns or 0)} per turn",
+                t("card_output"),
+                format_tokens(t_.output),
+                t("per_turn", n=format_tokens(t_.turns and t_.output // t_.turns or 0)),
             ),
             "#card-turns": (
-                "TURNS",
-                str(t.turns),
-                f"{t.sessions} sessions",
+                t("card_turns"),
+                str(t_.turns),
+                t("sessions", n=t_.sessions),
             ),
             "#card-cost": (
-                "COST",
-                format_cost(t.cost),
-                "recorded by OpenCode",
+                t("card_cost"),
+                format_cost(t_.cost),
+                t("recorded"),
             ),
         }
         for selector, (label, value, sub) in cards.items():
@@ -246,5 +247,5 @@ class UsageApp(App):
             queries.current_session(self._msgs)
         )
         self.query_one("#updated", Static).update(
-            f"[dim]actualizado {datetime.now().strftime('%H:%M:%S')}[/dim]"
+            f"[dim]{t('updated', time=datetime.now().strftime('%H:%M:%S'))}[/dim]"
         )

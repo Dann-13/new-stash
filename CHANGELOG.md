@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Interfaz en español e inglés (i18n), sin dependencias nuevas.
+- Idioma con `--lang es|en` o `language = "es"|"en"|"auto"` en `config.toml`.
+- `auto` detecta el idioma del entorno (`LANG`, `LC_ALL`); por defecto, español.
+- Todos los textos visibles traducidos: tarjetas, footer, gráficas, presupuesto,
+  sesión, panel DeepSeek, tablas, export Markdown y mensajes de error.
+
 ## 0.3.0
 
 - Panel de DeepSeek: saldo total, moneda y disponibilidad, actualizado cada 60 s.

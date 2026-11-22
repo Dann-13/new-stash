@@ -9,15 +9,16 @@ from textual.widgets import Static
 
 from ..data.models import SessionStat
 from ..format import format_cost, format_tokens
+from ..i18n import t
 
 
 def _ago(ts_ms: int, now: datetime) -> str:
     seconds = max(0, int(now.timestamp() - ts_ms / 1000))
     if seconds < 60:
-        return f"hace {seconds} s"
+        return t("ago_s", n=seconds)
     if seconds < 3600:
-        return f"hace {seconds // 60} min"
-    return f"hace {seconds // 3600} h"
+        return t("ago_min", n=seconds // 60)
+    return t("ago_h", n=seconds // 3600)
 
 
 class SessionLive(Static):
@@ -29,15 +30,20 @@ class SessionLive(Static):
 
     def set_session(self, stat: SessionStat | None) -> None:
         if stat is None:
-            self.update(Text("sesión actual: sin actividad", style="dim"))
+            self.update(Text(t("session_none"), style="dim"))
             return
         text = Text(no_wrap=True)
-        text.append("sesión actual ", style="dim")
+        text.append(t("session_label"), style="dim")
         text.append(stat.session_id[:14], style="#58a6ff")
         text.append(
-            f"  in {format_tokens(stat.input)} · out {format_tokens(stat.output)}"
-            f" · {format_cost(stat.cost)} · {stat.turns} turnos"
-            f" · {_ago(stat.last_ts_ms, datetime.now())}",
+            t(
+                "session_detail",
+                input=format_tokens(stat.input),
+                output=format_tokens(stat.output),
+                cost=format_cost(stat.cost),
+                turns=stat.turns,
+                ago=_ago(stat.last_ts_ms, datetime.now()),
+            ),
             style="#c9d1d9",
         )
         self.update(text)

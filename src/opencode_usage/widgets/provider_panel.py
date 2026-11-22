@@ -5,6 +5,7 @@ from __future__ import annotations
 from rich.text import Text
 from textual.widgets import Static
 
+from ..i18n import t
 from ..providers.deepseek import DeepSeekBalance
 
 _OK = "#3fb950"
@@ -22,11 +23,17 @@ class ProviderPanel(Static):
         text = Text(no_wrap=True)
         text.append("deepseek ", style="dim")
         text.append(
-            f"saldo {balance.total:.2f} {balance.currency}",
+            t(
+                "provider_balance",
+                total=f"{balance.total:.2f}",
+                currency=balance.currency,
+            ),
             style=_OK if balance.is_available else _BAD,
         )
         text.append(
-            "  · disponible" if balance.is_available else "  · sin saldo para llamadas",
+            t("provider_available")
+            if balance.is_available
+            else t("provider_unavailable"),
             style=_OK if balance.is_available else _BAD,
         )
         self.update(text)
@@ -38,4 +45,4 @@ class ProviderPanel(Static):
         self.update(text)
 
     def set_loading(self) -> None:
-        self.update(Text("deepseek  consultando saldo…", style="dim"))
+        self.update(Text(t("provider_loading"), style="dim"))

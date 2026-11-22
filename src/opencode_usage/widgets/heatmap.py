@@ -6,8 +6,7 @@ from rich.text import Text
 from textual.widgets import Static
 
 from ..data.models import HeatCell
-
-_WEEKDAYS = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
+from ..i18n import t
 
 # rampa de intensidad: vacío -> azul tenue -> azul fuerte (hex: el parser
 # de rich/textual no acepta "grey18" como color)
@@ -30,9 +29,10 @@ class Heatmap(Static):
     def render(self) -> Text:
         text = Text(no_wrap=True)
         if not self._cells:
-            text.append("sin datos", style="dim")
+            text.append(t("no_data"), style="dim")
             return text
 
+        weekdays = t("weekdays").split(",")
         peak = max(self._cells.values()) or 1
 
         # cabecera de horas cada 3
@@ -45,7 +45,7 @@ class Heatmap(Static):
         text.append("\n")
 
         for wd in range(7):
-            text.append(f"{_WEEKDAYS[wd]:>4} ", style="dim")
+            text.append(f"{weekdays[wd]:>4} ", style="dim")
             for hour in range(24):
                 tokens = self._cells.get((wd, hour), 0)
                 if tokens == 0:
@@ -57,9 +57,9 @@ class Heatmap(Static):
             text.append("\n")
 
         text.append("     ", style="dim")
-        text.append("más activo: ", style="dim")
+        text.append(t("most_active"), style="dim")
         wd, hour, top = max(
-            ((wd, h, t) for (wd, h), t in self._cells.items()), key=lambda x: x[2]
+            ((wd, h, t_) for (wd, h), t_ in self._cells.items()), key=lambda x: x[2]
         )
-        text.append(f"{_WEEKDAYS[wd]} {hour}h", style="bold")
+        text.append(f"{weekdays[wd]} {hour}h", style="bold")
         return text

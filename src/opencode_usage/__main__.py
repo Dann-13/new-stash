@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .app import UsageApp
 from .config import DEFAULT_DB, Settings, config_file, load_settings
+from .i18n import resolve_language, set_language
 
 
 def main() -> None:
@@ -28,9 +29,14 @@ def main() -> None:
         "--days", type=int, default=None, metavar="N",
         help="ventana inicial en días; 0 = todo (default: 30)",
     )
+    parser.add_argument(
+        "--lang", choices=["es", "en"], default=None,
+        help="idioma de la interfaz (default: config.toml o auto)",
+    )
     args = parser.parse_args()
 
     settings: Settings = load_settings()
+    set_language(args.lang or resolve_language(settings.language))
     changes: dict[str, object] = {}
     if args.db is not None:
         changes["db_path"] = args.db

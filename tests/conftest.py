@@ -8,6 +8,17 @@ from datetime import datetime
 
 import pytest
 
+from opencode_usage import i18n
+
+
+@pytest.fixture(autouse=True)
+def _reset_language():
+    """Cada prueba arranca en español; las de inglés fijan su idioma."""
+    i18n.set_language("es")
+    yield
+    i18n.set_language("es")
+
+
 SCHEMA = """
 CREATE TABLE session_message (
     id TEXT PRIMARY KEY,

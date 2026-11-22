@@ -65,6 +65,7 @@ Opciones:
 --db RUTA        ruta a opencode.db (default: ~/.local/share/opencode/opencode.db)
 --refresh SEG    segundos entre revisiones de cambios (default: 5)
 --days N         ventana inicial en días: 7, 30, 90 o 0 = todo (default: 30)
+--lang es|en     idioma de la interfaz (default: config.toml o auto)
 ```
 
 Atajos:
@@ -89,9 +90,23 @@ Archivo `config.toml`:
 ```toml
 # Presupuesto mensual en USD. Sin esta línea, no hay presupuesto.
 monthly_budget_usd = 20.0
+
+# Idioma de la interfaz: "es", "en" o "auto" (detecta el del sistema).
+language = "auto"
 ```
 
 Si el archivo tiene un error, la app sigue funcionando con valores por defecto y muestra un aviso.
+
+## Idiomas
+
+La interfaz está en español e inglés. Prioridad, de mayor a menor:
+
+1. Línea de comandos: `opencode-usage --lang en`
+2. `config.toml`: `language = "en"` (o `"es"`, o `"auto"`)
+3. Automático: con `auto` se mira `LANG`/`LC_ALL` del sistema. Sin pistas, español.
+
+Se traduce todo lo visible: tarjetas, atajos del footer, gráficas, presupuesto,
+sesión actual, panel de DeepSeek, tablas, el Markdown exportado y los errores.
 
 ## Exportar
 
@@ -140,6 +155,7 @@ src/opencode_usage/
   config.py        rutas, tiempos y config.toml
   pricing.py       tabla de precios de modelos (USD por 1M tokens)
   format.py        formatos de números
+  i18n.py          idiomas español/inglés (catálogos y traducción)
   export.py        exportación a CSV y Markdown
   providers/
     deepseek.py    saldo de DeepSeek (HTTPS, solo lectura, clave por env)

@@ -6,6 +6,7 @@ from textual.widgets import DataTable
 
 from ..data.models import ModelStat
 from ..format import format_cost, format_tokens
+from ..i18n import t
 
 
 class ModelsTable(DataTable[str]):
@@ -14,7 +15,10 @@ class ModelsTable(DataTable[str]):
     def on_mount(self) -> None:
         self.cursor_type = "row"
         self.zebra_stripes = True
-        self.add_columns("MODEL", "PROVIDER", "INPUT", "OUTPUT", "TURNS", "COST")
+        self.add_columns(
+            t("col_model"), t("col_provider"), t("col_input"),
+            t("col_output"), t("col_turns"), t("col_cost"),
+        )
 
     def set_stats(self, stats: list[ModelStat]) -> None:
         self.clear()

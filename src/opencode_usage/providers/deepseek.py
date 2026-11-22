@@ -14,6 +14,8 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 
+from ..i18n import t
+
 BALANCE_URL = "https://api.deepseek.com/user/balance"
 TIMEOUT_SECONDS = 10
 
@@ -34,9 +36,9 @@ class DeepSeekBalance:
 def fetch_balance(api_key: str) -> DeepSeekBalance:
     """Consulta el saldo. Lanza DeepSeekError con mensaje seguro si falla."""
     if not api_key:
-        raise DeepSeekError("falta la clave (variable DEEPSEEK_API_KEY)")
+        raise DeepSeekError(t("ds_no_key"))
     if not BALANCE_URL.startswith("https://"):
-        raise DeepSeekError("solo se permiten conexiones HTTPS")
+        raise DeepSeekError(t("ds_https"))
     req = urllib.request.Request(
         BALANCE_URL,
         headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},
@@ -46,19 +48,19 @@ def fetch_balance(api_key: str) -> DeepSeekBalance:
             payload = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         if exc.code in (401, 403):
-            raise DeepSeekError("clave rechazada por DeepSeek (401/403)") from None
-        raise DeepSeekError(f"DeepSeek respondió HTTP {exc.code}") from None
+            raise DeepSeekError(t("ds_rejected")) from None
+        raise DeepSeekError(t("ds_http", code=exc.code)) from None
     except (urllib.error.URLError, TimeoutError, OSError):
-        raise DeepSeekError("sin conexión con DeepSeek") from None
+        raise DeepSeekError(t("ds_network")) from None
     except (json.JSONDecodeError, UnicodeDecodeError):
-        raise DeepSeekError("respuesta de DeepSeek no es JSON válido") from None
+        raise DeepSeekError(t("ds_json")) from None
     return _parse_balance(payload)
 
 
 def _parse_balance(payload: dict) -> DeepSeekBalance:
     infos = payload.get("balance_infos") or []
     if not isinstance(infos, list) or not infos:
-        raise DeepSeekError("DeepSeek no reportó saldo")
+        raise DeepSeekError(t("ds_no_balance"))
     info = infos[0]
     try:
         return DeepSeekBalance(
@@ -69,4 +71,4 @@ def _parse_balance(payload: dict) -> DeepSeekBalance:
             topped_up=float(info.get("topped_up_balance") or 0),
         )
     except (TypeError, ValueError):
-        raise DeepSeekError("saldo de DeepSeek con formato inesperado") from None
+        raise DeepSeekError(t("ds_bad_format")) from None

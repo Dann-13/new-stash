@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .data.models import AgentStat, DayTokens, ModelStat, TokenTotals
 from .format import format_cost, format_percent
+from .i18n import t
 
 
 def export_csv(path: Path, days: list[DayTokens]) -> None:
@@ -36,20 +37,20 @@ def export_markdown(
     lines = [
         "# opencode usage",
         "",
-        f"Rango: {label}",
+        t("md_range", label=label),
         "",
-        "## Totales",
+        t("md_totals"),
         "",
-        f"- Input tokens: {totals.input}",
-        f"- Output tokens: {totals.output}",
-        f"- Caché leída: {format_percent(totals.cache_hit_ratio)}",
-        f"- Turnos: {totals.turns}",
-        f"- Sesiones: {totals.sessions}",
-        f"- Costo registrado: {format_cost(totals.cost)}",
+        t("md_input", n=totals.input),
+        t("md_output", n=totals.output),
+        t("md_cache", pct=format_percent(totals.cache_hit_ratio)),
+        t("md_turns", n=totals.turns),
+        t("md_sessions", n=totals.sessions),
+        t("md_cost", c=format_cost(totals.cost)),
         "",
-        "## Modelos",
+        t("md_models"),
         "",
-        "| Modelo | Proveedor | Input | Output | Turnos | Costo |",
+        t("md_models_header"),
         "|---|---|---:|---:|---:|---:|",
     ]
     for m in models:
@@ -59,9 +60,9 @@ def export_markdown(
         )
     lines += [
         "",
-        "## Agentes",
+        t("md_agents"),
         "",
-        "| Agente | Input | Output | Turnos | Costo |",
+        t("md_agents_header"),
         "|---|---:|---:|---:|---:|",
     ]
     for a in agents:

@@ -74,6 +74,22 @@ def test_config_toml_roto_no_tumba_la_app(tmp_path):
     assert s.config_error is not None
 
 
+def test_config_language_valido(tmp_path):
+    f = tmp_path / "config.toml"
+    f.write_text('language = "en"\n', encoding="utf-8")
+    s = load_settings(f)
+    assert s.language == "en"
+    assert s.config_error is None
+
+
+def test_config_language_invalido_cae_a_auto(tmp_path):
+    f = tmp_path / "config.toml"
+    f.write_text('language = "fr"\n', encoding="utf-8")
+    s = load_settings(f)
+    assert s.language == "auto"
+    assert s.config_error is not None
+
+
 def test_export_csv_y_markdown(con, tmp_path):
     msgs = queries.load_messages(con)
     csv_path = tmp_path / "u.csv"

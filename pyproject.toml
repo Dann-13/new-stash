@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "opencode-usage"
-version = "0.3.0"
+version = "0.4.0"
 description = "Dashboard en terminal para el uso de tokens de OpenCode"
 readme = "README.md"
 requires-python = ">=3.11"

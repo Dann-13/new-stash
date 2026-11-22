@@ -7,6 +7,7 @@ from textual.widgets import Static
 
 from ..data.models import DayTokens
 from ..format import format_tokens
+from ..i18n import t
 
 HEIGHT = 8  # filas de la gráfica
 
@@ -43,7 +44,7 @@ class TokensByDay(Static):
     def render(self) -> Text:
         text = Text(no_wrap=True)
         if not self._days:
-            text.append("sin datos", style="dim")
+            text.append(t("no_data"), style="dim")
             return text
 
         # una columna por día; si no cabe, muestra los últimos que quepan
@@ -88,7 +89,7 @@ class TokensByDay(Static):
         text.append(_cost_line(days), style=_COST_STYLE)
         text.append("\n")
         text.append("  ", style="dim")
-        text.append("■ output ", style=_OUTPUT_STYLE)
-        text.append("■ input ", style=_INPUT_STYLE)
-        text.append("▁ costo/día", style=_COST_STYLE)
+        text.append(t("legend_output"), style=_OUTPUT_STYLE)
+        text.append(t("legend_input"), style=_INPUT_STYLE)
+        text.append(t("legend_cost"), style=_COST_STYLE)
         return text

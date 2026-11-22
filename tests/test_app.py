@@ -5,6 +5,7 @@ from conftest import SCHEMA, _msg
 
 from opencode_usage.app import UsageApp
 from opencode_usage.config import Settings
+from opencode_usage.i18n import set_language
 from opencode_usage.widgets.budget_bar import BudgetBar
 
 
@@ -41,3 +42,20 @@ async def test_app_sin_presupuesto_muestra_aviso(tmp_path):
         await pilot.pause()
         bar = app.query_one("#budget", BudgetBar)
         assert "no definido" in str(bar.render())
+
+
+async def test_app_ingles_traduce_footer_y_presupuesto(tmp_path):
+    set_language("en")
+    settings = Settings(
+        db_path=_db_file(tmp_path),
+        refresh_seconds=60,
+        monthly_budget_usd=10.0,
+    )
+    app = UsageApp(settings)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        bar = app.query_one("#budget", BudgetBar)
+        assert "month" in str(bar.render())
+        footer = {k: ab.binding.description for k, ab in app.active_bindings.items()}
+        assert footer["q"] == "Quit"
+        assert footer["1"] == "7 days"

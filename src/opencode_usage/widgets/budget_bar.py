@@ -6,6 +6,7 @@ from rich.text import Text
 from textual.widgets import Static
 
 from ..format import format_cost
+from ..i18n import t
 
 BAR_WIDTH = 24
 _OK = "#3fb950"
@@ -22,24 +23,19 @@ class BudgetBar(Static):
 
     def set_budget(self, spent: float, budget: float | None) -> None:
         if budget is None:
-            self.update(
-                Text(
-                    "presupuesto: no definido (monthly_budget_usd en config.toml)",
-                    style="dim",
-                )
-            )
+            self.update(Text(t("budget_none"), style="dim"))
             return
         ratio = spent / budget
         style = _OK if ratio < 0.8 else _WARN if ratio < 1 else _OVER
         filled = min(BAR_WIDTH, round(min(ratio, 1) * BAR_WIDTH))
         text = Text(no_wrap=True)
-        text.append("mes ", style="dim")
+        text.append(t("budget_month"), style="dim")
         text.append(f"{format_cost(spent)} / {format_cost(budget)} ", style=style)
         text.append("█" * filled, style=style)
         text.append("░" * (BAR_WIDTH - filled), style="#30363d")
         text.append(f" {ratio * 100:.0f}%", style=style)
         if ratio >= 1:
-            text.append("  límite superado", style=_OVER)
+            text.append(t("budget_over"), style=_OVER)
         elif ratio >= 0.8:
-            text.append("  cerca del límite", style=_WARN)
+            text.append(t("budget_near"), style=_WARN)
         self.update(text)
