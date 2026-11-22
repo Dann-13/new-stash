@@ -24,9 +24,11 @@ opencode-usage                 # o: python -m opencode_usage
 opencode-usage --lang en       # inglés
 opencode-usage --days 7        # ventana inicial
 opencode-usage --db /ruta/opencode.db --refresh 10
+opencode-usage --export-dir ~/Documentos/usage   # carpeta de export inicial
 ```
 
-Teclas: `1/2/3/4` rangos 7/30/90/todo, `r` refrescar, `e` exportar, `q` salir.
+Teclas: `1/2/3/4` rangos 7/30/90/todo, `r` refrescar, `e` exportar (abre un
+diálogo para elegir la carpeta), `q` salir.
 
 ## Configuración del usuario
 
@@ -36,6 +38,7 @@ Teclas: `1/2/3/4` rangos 7/30/90/todo, `r` refrescar, `e` exportar, `q` salir.
 ```toml
 language = "auto"            # es | en | auto
 monthly_budget_usd = 20.0    # opcional; ausente = sin presupuesto
+export_dir = "~/Documentos/usage"   # opcional; ausente = carpeta de trabajo
 ```
 
 Valores inválidos se ignoran y se avisa al arrancar; la app no se cae.
@@ -47,7 +50,7 @@ Valores inválidos se ignoran y se avisa al arrancar; la app no se cae.
   `pyproject.toml`, `src/opencode_usage/__init__.py` (`__version__`) y una entrada
   nueva en `CHANGELOG.md` (arriba, en español).
 - Historial: 0.1.0 MVP · 0.2.0 costo/presupuesto/sesión/export/CI ·
-  0.3.0 DeepSeek · 0.4.0 i18n.
+  0.3.0 DeepSeek · 0.4.0 i18n · 0.5.0 sesiones/comparador/caché/export elegible.
 
 ## Commits y push
 
@@ -67,21 +70,18 @@ Valores inválidos se ignoran y se avisa al arrancar; la app no se cae.
 ## Roadmap
 
 Hecho: Fase 1 (MVP), optimización + Linux, Fase A (funcional), Fase B (DeepSeek),
-i18n.
+i18n, y Fase C grupo fácil (v0.5.0): top sesiones, comparador de modelos,
+tendencia de caché y export con carpeta elegible.
 
-**Fase C (v0.5.0), pendiente:**
+**Fase C, grupo medio pendiente:**
 
 | Feature | Nota |
 |---|---|
-| Top sesiones / proyectos | datos ya existen; query nueva de ranking. |
-| Comparador de modelos | costo por 1K tokens output; tabla derivada. |
 | Tokens/min sparkline | requiere muestreo en vivo (ritmo de consumo). |
-| Tendencia de caché | % cache hit por día, línea de tendencia. |
 | `--compact` | vista mínima para terminales chicas. |
 | Temas | claro/oscuro u otros, vía `.tcss`. |
 
-Orden sugerido: top sesiones + comparador primero (fáciles, datos presentes),
-luego tokens/min (muestreo), después compact y temas.
+Orden sugerido: tokens/min (muestreo) primero, después compact y temas.
 
 ## Principios al añadir features
 

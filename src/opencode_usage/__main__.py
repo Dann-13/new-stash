@@ -33,6 +33,10 @@ def main() -> None:
         "--lang", choices=["es", "en"], default=None,
         help="idioma de la interfaz (default: config.toml o auto)",
     )
+    parser.add_argument(
+        "--export-dir", type=Path, default=None, metavar="RUTA",
+        help="carpeta destino del export (default: config export_dir o la actual)",
+    )
     args = parser.parse_args()
 
     settings: Settings = load_settings()
@@ -44,6 +48,8 @@ def main() -> None:
         changes["refresh_seconds"] = args.refresh
     if args.days is not None:
         changes["default_days"] = None if args.days == 0 else args.days
+    if args.export_dir is not None:
+        changes["export_dir"] = args.export_dir.expanduser()
     UsageApp(replace(settings, **changes)).run()
 
 

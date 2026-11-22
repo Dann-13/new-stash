@@ -1,7 +1,8 @@
 # opencode-usage
 
 Dashboard en terminal (100% TUI) que mide tu uso de tokens de OpenCode:
-tokens por modelo, por agente, por día, heatmap de actividad y costo.
+tokens por modelo, por agente, por día, heatmap de actividad, costo,
+ranking de sesiones, comparador de modelos y tendencia de caché.
 
 Lee en modo solo lectura la base de datos local de OpenCode
 (`~/.local/share/opencode/opencode.db`). No escribe nada.
@@ -81,6 +82,7 @@ Opciones:
 --refresh SEG    segundos entre revisiones de cambios (default: 5)
 --days N         ventana inicial en días: 7, 30, 90 o 0 = todo (default: 30)
 --lang es|en     idioma de la interfaz (default: config.toml o auto)
+--export-dir RUTA  carpeta destino del export (default: config.toml o la actual)
 ```
 
 Atajos:
@@ -92,7 +94,7 @@ Atajos:
 | `3`   | ventana 90 días   |
 | `4`   | todo el histórico |
 | `r`   | refrescar ya      |
-| `e`   | exportar CSV y Markdown a la carpeta actual |
+| `e`   | exportar CSV y Markdown (elige la carpeta en un diálogo) |
 | `q`   | salir             |
 
 ## Configuración (opcional)
@@ -108,6 +110,9 @@ monthly_budget_usd = 20.0
 
 # Idioma de la interfaz: "es", "en" o "auto" (detecta el del sistema).
 language = "auto"
+
+# Carpeta destino del export. Sin esta línea, se usa la carpeta actual.
+export_dir = "~/Documentos/usage"
 ```
 
 Si el archivo tiene un error, la app sigue funcionando con valores por defecto y muestra un aviso.
@@ -125,10 +130,17 @@ sesión actual, panel de DeepSeek, tablas, el Markdown exportado y los errores.
 
 ## Exportar
 
-La tecla `e` escribe dos archivos en la carpeta desde donde ejecutas la app:
+La tecla `e` abre un diálogo para elegir la carpeta destino. Escribe la ruta
+(acepta `~`), `Enter` exporta y `Esc` cancela. La app recuerda la última carpeta
+usada durante la sesión. El destino inicial sale de `--export-dir`, de
+`export_dir` en `config.toml`, o de la carpeta actual, en ese orden.
+
+Se escriben dos archivos:
 
 - `opencode-usage-AAAAMMDD-HHMMSS.csv`: una fila por día (fecha, tokens, costo).
 - `opencode-usage-AAAAMMDD-HHMMSS.md`: resumen de totales, modelos y agentes.
+
+Si la carpeta no existe, se crea. Si no se puede usar, se avisa y no se exporta.
 
 ## Privacidad y seguridad
 
@@ -179,7 +191,8 @@ src/opencode_usage/
     models.py      dataclasses de datos
     queries.py     agregaciones (sin dependencia de UI)
   app.py           app Textual
-  widgets/         tarjetas, gráfica diaria, heatmap, tablas, presupuesto, sesión
+  widgets/         tarjetas, gráfica diaria, heatmap, tablas (modelos, agentes,
+                   sesiones), presupuesto, sesión, diálogo de export
   styles/app.tcss  estilos
 tests/             fixtures SQLite, pruebas de queries, config y app
 docs/              convenciones: arquitectura, estilo, i18n, tests, seguridad

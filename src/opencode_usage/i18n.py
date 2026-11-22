@@ -43,6 +43,7 @@ CATALOGS: dict[str, dict[str, str]] = {
         "legend_output": "■ output ",
         "legend_input": "■ input ",
         "legend_cost": "▁ costo/día",
+        "legend_cache": "  ▁ caché {pct}",
         # presupuesto
         "budget_none": "presupuesto: no definido (monthly_budget_usd en config.toml)",
         "budget_month": "mes ",
@@ -69,6 +70,12 @@ CATALOGS: dict[str, dict[str, str]] = {
         "col_turns": "TURNS",
         "col_cost": "COST",
         "col_agent": "AGENT",
+        "col_rate": "$/1K OUT",
+        "col_session": "SESSION",
+        # exportar
+        "export_title": "Exportar a carpeta",
+        "export_hint": "Enter exporta · Esc cancela",
+        "export_bad_dir": "no se pudo usar la carpeta: {exc}",
         # export markdown
         "md_range": "Rango: {label}",
         "md_totals": "## Totales",
@@ -95,6 +102,7 @@ CATALOGS: dict[str, dict[str, str]] = {
         "cfg_read": "config.toml no se pudo leer: {exc}",
         "cfg_budget": "monthly_budget_usd debe ser un número mayor que 0",
         "cfg_language": "language debe ser es, en o auto",
+        "cfg_export_dir": "export_dir debe ser una ruta de texto",
     },
     "en": {
         "quit": "Quit",
@@ -124,6 +132,7 @@ CATALOGS: dict[str, dict[str, str]] = {
         "legend_output": "■ output ",
         "legend_input": "■ input ",
         "legend_cost": "▁ cost/day",
+        "legend_cache": "  ▁ cache {pct}",
         "budget_none": "budget: not set (monthly_budget_usd in config.toml)",
         "budget_month": "month ",
         "budget_over": "  over limit",
@@ -146,6 +155,11 @@ CATALOGS: dict[str, dict[str, str]] = {
         "col_turns": "TURNS",
         "col_cost": "COST",
         "col_agent": "AGENT",
+        "col_rate": "$/1K OUT",
+        "col_session": "SESSION",
+        "export_title": "Export to folder",
+        "export_hint": "Enter exports · Esc cancels",
+        "export_bad_dir": "could not use folder: {exc}",
         "md_range": "Range: {label}",
         "md_totals": "## Totals",
         "md_input": "- Input tokens: {n}",
@@ -169,6 +183,7 @@ CATALOGS: dict[str, dict[str, str]] = {
         "cfg_read": "could not read config.toml: {exc}",
         "cfg_budget": "monthly_budget_usd must be a number greater than 0",
         "cfg_language": "language must be es, en or auto",
+        "cfg_export_dir": "export_dir must be a text path",
     },
 }
 

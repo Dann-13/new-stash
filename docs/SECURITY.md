@@ -30,7 +30,11 @@ de abajo son innegociables.
 
 ## Qué se exporta
 
-- La tecla `e` escribe CSV y Markdown **en la carpeta de trabajo actual**.
+- La tecla `e` abre un diálogo para **elegir la carpeta** y escribe ahí CSV y
+  Markdown. El destino inicial sale de `--export-dir`, o `export_dir` en
+  `config.toml`, o la carpeta de trabajo actual. La app recuerda la última usada.
+- La carpeta se crea si no existe (`mkdir parents=True`); si no se puede usar, se
+  avisa y no se escribe nada. Solo se escriben los archivos de export, nada más.
 - Contienen agregados de uso (tokens, costo, modelos). No contienen la clave.
 - Los archivos generados `opencode-usage-*.csv` / `*.md` están en `.gitignore`:
   no deben commitearse.

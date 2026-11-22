@@ -6,7 +6,7 @@ from rich.text import Text
 from textual.widgets import Static
 
 from ..data.models import DayTokens
-from ..format import format_tokens
+from ..format import format_percent, format_tokens
 from ..i18n import t
 
 HEIGHT = 8  # filas de la gráfica
@@ -14,6 +14,7 @@ HEIGHT = 8  # filas de la gráfica
 _INPUT_STYLE = "#8b949e"
 _OUTPUT_STYLE = "#58a6ff"
 _COST_STYLE = "#d2a8ff"
+_CACHE_STYLE = "#3fb950"
 _SPARK = "▁▂▃▄▅▆▇█"
 
 
@@ -27,6 +28,23 @@ def _cost_line(days: list[DayTokens]) -> str:
         _SPARK[round(d.cost / peak * levels)] if d.cost > 0 else "·"
         for d in days
     )
+
+
+def _cache_line(days: list[DayTokens]) -> str:
+    """Una celda por día: altura proporcional al % de caché de ese día."""
+    levels = len(_SPARK) - 1
+    return "".join(
+        _SPARK[round(d.cache_hit_ratio * levels)]
+        if (d.input + d.cache_read) > 0 else "·"
+        for d in days
+    )
+
+
+def _cache_ratio(days: list[DayTokens]) -> float:
+    """% de caché ponderado del rango mostrado."""
+    read = sum(d.cache_read for d in days)
+    denom = sum(d.input + d.cache_read for d in days)
+    return read / denom if denom else 0.0
 
 
 class TokensByDay(Static):
@@ -88,8 +106,15 @@ class TokensByDay(Static):
         text.append(" " * 8, style="dim")
         text.append(_cost_line(days), style=_COST_STYLE)
         text.append("\n")
+        text.append(" " * 8, style="dim")
+        text.append(_cache_line(days), style=_CACHE_STYLE)
+        text.append("\n")
         text.append("  ", style="dim")
         text.append(t("legend_output"), style=_OUTPUT_STYLE)
         text.append(t("legend_input"), style=_INPUT_STYLE)
         text.append(t("legend_cost"), style=_COST_STYLE)
+        text.append(
+            t("legend_cache", pct=format_percent(_cache_ratio(days))),
+            style=_CACHE_STYLE,
+        )
         return text

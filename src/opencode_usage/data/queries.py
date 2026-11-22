@@ -139,16 +139,18 @@ def tokens_by_day(msgs: list[MsgUsage]) -> list[DayTokens]:
     buckets: dict[date, list[float]] = {}
     for m in msgs:
         day = datetime.fromtimestamp(m.ts_ms / 1000).date()
-        b = buckets.setdefault(day, [0, 0, 0.0])
+        b = buckets.setdefault(day, [0, 0, 0.0, 0])
         b[0] += m.input
         b[1] += m.output
         b[2] += m.cost
+        b[3] += m.cache_read
     first, last = min(buckets), max(buckets)
     out: list[DayTokens] = []
     day = first
     while day <= last:
-        b = buckets.get(day, [0, 0, 0.0])
-        out.append(DayTokens(day=day, input=int(b[0]), output=int(b[1]), cost=b[2]))
+        b = buckets.get(day, [0, 0, 0.0, 0])
+        out.append(DayTokens(day=day, input=int(b[0]), output=int(b[1]),
+                             cost=b[2], cache_read=int(b[3])))
         day += timedelta(days=1)
     return out
 
@@ -192,6 +194,26 @@ def by_model(msgs: list[MsgUsage]) -> list[ModelStat]:
     ]
     stats.sort(key=lambda s: s.input + s.output, reverse=True)
     return stats
+
+
+def top_sessions(msgs: list[MsgUsage], limit: int = 10) -> list[SessionStat]:
+    """Sesiones ordenadas por costo: las que más gastan primero."""
+    agg: dict[str, list[float]] = {}
+    last: dict[str, int] = {}
+    for m in msgs:
+        a = agg.setdefault(m.session_id, [0, 0, 0.0, 0])
+        a[0] += m.input
+        a[1] += m.output
+        a[2] += m.cost
+        a[3] += 1
+        last[m.session_id] = max(last.get(m.session_id, 0), m.ts_ms)
+    stats = [
+        SessionStat(session_id=sid, input=int(a[0]), output=int(a[1]),
+                    cost=float(a[2]), turns=int(a[3]), last_ts_ms=last[sid])
+        for sid, a in agg.items()
+    ]
+    stats.sort(key=lambda s: s.cost, reverse=True)
+    return stats[:limit]
 
 
 def by_agent(msgs: list[MsgUsage]) -> list[AgentStat]:

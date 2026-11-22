@@ -96,3 +96,40 @@ AgentsTable {
     background: #11161f;
     margin-top: 1;
 }
+
+SessionsTable {
+    height: 1fr;
+    border: round #21262d;
+    background: #11161f;
+    margin-top: 1;
+}
+
+/* Diálogo modal para elegir carpeta de export */
+ExportScreen {
+    align: center middle;
+    background: #0b0e14 70%;
+}
+
+#export-dialog {
+    width: 64;
+    height: auto;
+    border: round #58a6ff;
+    background: #11161f;
+    padding: 1 2;
+}
+
+#export-title {
+    width: 100%;
+    color: #58a6ff;
+    text-style: bold;
+}
+
+#export-input {
+    width: 100%;
+    margin: 1 0;
+}
+
+#export-hint {
+    width: 100%;
+    color: #8b949e;
+}

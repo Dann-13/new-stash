@@ -32,21 +32,25 @@ src/opencode_usage/
   app.py             UsageApp(App): compose, bindings, refresh, acciones.
   config.py          Settings (frozen) + load_settings() desde config.toml.
   i18n.py            catálogos es/en, t(), set_language(), resolve_language().
-  format.py          format_tokens (B/M/K), format_cost ($), format_percent.
+  format.py          format_tokens (B/M/K), format_cost ($), format_percent,
+                     format_rate ($/1K output).
   pricing.py         tabla de precios USD/1M tokens + estimate().
   export.py          export_csv / export_markdown (puro, recibe datos calculados).
   data/
     db.py            open_readonly(): file: URI mode=ro. Nunca escribe.
     models.py        dataclasses frozen de datos (TokenTotals, DayTokens, ...).
-    queries.py       load_messages + agregaciones puras (totals, by_model, ...).
+    queries.py       load_messages + agregaciones puras (totals, by_model,
+                     top_sessions, tokens_by_day con costo y caché, ...).
   providers/
     deepseek.py      fetch_balance(): GET HTTPS /user/balance, errores seguros.
   widgets/
     stat_card.py     tarjeta label/valor/sub.
-    tokens_by_day.py barras apiladas por día + línea de costo.
+    tokens_by_day.py barras apiladas por día + líneas de costo y caché.
     heatmap.py       7×24 coloreado por intensidad.
-    models_table.py  DataTable de modelos.
+    models_table.py  DataTable de modelos (incluye columna costo/1K output).
     agents_table.py  DataTable de agentes.
+    sessions_table.py DataTable de sesiones (ranking por costo).
+    export_screen.py diálogo modal para elegir la carpeta de export.
     budget_bar.py    barra de presupuesto mensual.
     session_live.py  línea de la sesión más reciente.
     provider_panel.py línea de saldo DeepSeek (oculta sin clave).

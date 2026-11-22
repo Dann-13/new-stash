@@ -5,19 +5,19 @@ from __future__ import annotations
 from textual.widgets import DataTable
 
 from ..data.models import ModelStat
-from ..format import format_cost, format_tokens
+from ..format import format_cost, format_rate, format_tokens
 from ..i18n import t
 
 
 class ModelsTable(DataTable[str]):
-    """Lista de modelos ordenados por uso total."""
+    """Lista de modelos ordenados por uso total, con costo por 1K output."""
 
     def on_mount(self) -> None:
         self.cursor_type = "row"
         self.zebra_stripes = True
         self.add_columns(
             t("col_model"), t("col_provider"), t("col_input"),
-            t("col_output"), t("col_turns"), t("col_cost"),
+            t("col_output"), t("col_turns"), t("col_cost"), t("col_rate"),
         )
 
     def set_stats(self, stats: list[ModelStat]) -> None:
@@ -30,5 +30,6 @@ class ModelsTable(DataTable[str]):
                 format_tokens(s.output),
                 str(s.turns),
                 format_cost(s.cost),
+                format_rate(s.cost_per_1k_output),
                 key=s.model_id,
             )

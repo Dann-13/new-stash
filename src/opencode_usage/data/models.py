@@ -33,6 +33,13 @@ class DayTokens:
     input: int
     output: int
     cost: float = 0.0
+    cache_read: int = 0
+
+    @property
+    def cache_hit_ratio(self) -> float:
+        """Fracción de input servida desde caché ese día (0..1)."""
+        denom = self.input + self.cache_read
+        return self.cache_read / denom if denom else 0.0
 
 
 @dataclass(frozen=True)
@@ -45,6 +52,13 @@ class ModelStat:
     cache_read: int
     cost: float
     turns: int
+
+    @property
+    def cost_per_1k_output(self) -> float | None:
+        """Costo por cada 1000 tokens de output. None si no produjo output."""
+        if self.output <= 0:
+            return None
+        return self.cost / (self.output / 1000)
 
 
 @dataclass(frozen=True)

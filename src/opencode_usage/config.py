@@ -37,6 +37,7 @@ class Settings:
     default_days: int | None = 30  # None = todo el histórico
     monthly_budget_usd: float | None = None  # None = sin presupuesto
     language: str = "auto"  # es | en | auto
+    export_dir: Path | None = None  # None = carpeta de trabajo actual
     config_error: str | None = None
 
 
@@ -71,6 +72,15 @@ def load_settings(path: Path | None = None) -> Settings:
         error = error or t("cfg_language")
         language = "auto"
 
+    export_dir = raw.get("export_dir")
+    export_value: Path | None = None
+    if export_dir is not None:
+        if isinstance(export_dir, str) and export_dir.strip():
+            export_value = Path(export_dir).expanduser()
+        else:
+            error = error or t("cfg_export_dir")
+
     return Settings(
-        monthly_budget_usd=budget_value, language=language, config_error=error
+        monthly_budget_usd=budget_value, language=language,
+        export_dir=export_value, config_error=error,
     )

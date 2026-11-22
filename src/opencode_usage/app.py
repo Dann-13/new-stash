@@ -22,10 +22,12 @@ from .i18n import t
 from .providers import deepseek
 from .widgets.agents_table import AgentsTable
 from .widgets.budget_bar import BudgetBar
+from .widgets.export_screen import ExportScreen
 from .widgets.heatmap import Heatmap
 from .widgets.models_table import ModelsTable
 from .widgets.provider_panel import ProviderPanel
 from .widgets.session_live import SessionLive
+from .widgets.sessions_table import SessionsTable
 from .widgets.stat_card import StatCard
 from .widgets.tokens_by_day import TokensByDay
 
@@ -52,6 +54,7 @@ class UsageApp(App):
         self._msgs: list[MsgUsage] = []
         self._fingerprint: tuple | None = None
         self._last_full = 0.0
+        self._export_dir: Path = self.settings.export_dir or Path.cwd()
 
     # ---- composición -------------------------------------------------
     def compose(self) -> ComposeResult:
@@ -79,6 +82,7 @@ class UsageApp(App):
             with Vertical(id="right"):
                 yield ModelsTable(id="models")
                 yield AgentsTable(id="agents")
+                yield SessionsTable(id="sessions")
         yield Footer()
 
     # ---- ciclo de vida ------------------------------------------------
@@ -145,11 +149,24 @@ class UsageApp(App):
         self.refresh_data(force=True)
 
     def action_export(self) -> None:
-        """Escribe CSV y Markdown del rango actual en la carpeta de trabajo."""
+        """Abre el diálogo para elegir la carpeta destino del export."""
+        self.push_screen(ExportScreen(str(self._export_dir)), self._export_to)
+
+    def _export_to(self, chosen: str | None) -> None:
+        """Exporta CSV y Markdown a la carpeta elegida (None = cancelado)."""
+        if not chosen:
+            return
+        folder = Path(os.path.expandvars(chosen)).expanduser()
+        try:
+            folder.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            self.notify(t("export_bad_dir", exc=exc), severity="error")
+            return
+        self._export_dir = folder
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         label = t("range_all") if self._days is None else t("range_days", n=self._days)
-        csv_path = Path.cwd() / f"opencode-usage-{stamp}.csv"
-        md_path = Path.cwd() / f"opencode-usage-{stamp}.md"
+        csv_path = folder / f"opencode-usage-{stamp}.csv"
+        md_path = folder / f"opencode-usage-{stamp}.md"
         try:
             export.export_csv(csv_path, queries.tokens_by_day(self._msgs))
             export.export_markdown(
@@ -239,6 +256,9 @@ class UsageApp(App):
         )
         self.query_one("#agents", AgentsTable).set_stats(
             queries.by_agent(self._msgs)
+        )
+        self.query_one("#sessions", SessionsTable).set_stats(
+            queries.top_sessions(self._msgs)
         )
         self.query_one("#budget", BudgetBar).set_budget(
             queries.totals(month_msgs).cost, budget

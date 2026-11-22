@@ -2,11 +2,14 @@ import sqlite3
 from datetime import datetime
 
 from conftest import SCHEMA, _msg
+from textual.widgets import Input
 
 from opencode_usage.app import UsageApp
 from opencode_usage.config import Settings
 from opencode_usage.i18n import set_language
 from opencode_usage.widgets.budget_bar import BudgetBar
+from opencode_usage.widgets.export_screen import ExportScreen
+from opencode_usage.widgets.sessions_table import SessionsTable
 
 
 def _db_file(tmp_path):
@@ -59,3 +62,43 @@ async def test_app_ingles_traduce_footer_y_presupuesto(tmp_path):
         footer = {k: ab.binding.description for k, ab in app.active_bindings.items()}
         assert footer["q"] == "Quit"
         assert footer["1"] == "7 days"
+
+
+async def test_app_muestra_tabla_sesiones(tmp_path):
+    settings = Settings(db_path=_db_file(tmp_path), refresh_seconds=60)
+    app = UsageApp(settings)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        table = app.query_one("#sessions", SessionsTable)
+        assert table.row_count == 1
+
+
+async def test_export_dialogo_elige_carpeta(tmp_path):
+    settings = Settings(db_path=_db_file(tmp_path), refresh_seconds=60)
+    app = UsageApp(settings)
+    dest = tmp_path / "salida"
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        await pilot.press("e")
+        await pilot.pause()
+        assert isinstance(app.screen, ExportScreen)
+        app.screen.query_one("#export-input", Input).value = str(dest)
+        await pilot.press("enter")
+        await pilot.pause()
+        assert not isinstance(app.screen, ExportScreen)
+        assert list(dest.glob("opencode-usage-*.csv"))
+        assert list(dest.glob("opencode-usage-*.md"))
+
+
+async def test_export_dialogo_cancelar_no_exporta(tmp_path):
+    settings = Settings(db_path=_db_file(tmp_path), refresh_seconds=60)
+    app = UsageApp(settings)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        await pilot.press("e")
+        await pilot.pause()
+        assert isinstance(app.screen, ExportScreen)
+        await pilot.press("escape")
+        await pilot.pause()
+        assert not isinstance(app.screen, ExportScreen)
+        assert not list(tmp_path.glob("opencode-usage-*.csv"))

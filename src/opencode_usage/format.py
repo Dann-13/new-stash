@@ -26,3 +26,12 @@ def format_cost(v: float) -> str:
 def format_percent(ratio: float) -> str:
     """0.983 -> '98.3%'."""
     return f"{ratio * 100:.1f}%"
+
+
+def format_rate(v: float | None) -> str:
+    """Costo por 1K tokens: None -> '—', 0 -> '$0', resto con 4 decimales."""
+    if v is None:
+        return "—"
+    if v <= 0:
+        return "$0"
+    return f"${v:.4f}"

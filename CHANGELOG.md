@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0
+
+- Tabla de sesiones: ranking de las que más gastan (tokens, turnos y costo).
+- Comparador de modelos: columna de costo por cada 1000 tokens de output.
+- Tendencia de caché: línea `▁▂▃` con el % de caché por día y el total del rango.
+- Export con carpeta elegible: la tecla `e` abre un diálogo para elegir el destino.
+  Se recuerda la última carpeta; destino fijo con `export_dir` en `config.toml`
+  o `--export-dir RUTA`. `Enter` exporta, `Esc` cancela.
+
 ## 0.4.0
 
 - Interfaz en español e inglés (i18n), sin dependencias nuevas.
