@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "opencode-usage"
+version = "0.1.0"
+description = "Dashboard en terminal para el uso de tokens de OpenCode"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "textual>=0.80.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+]
+
+[project.scripts]
+opencode-usage = "opencode_usage.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/opencode_usage"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
