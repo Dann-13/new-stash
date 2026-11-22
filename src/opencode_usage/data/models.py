@@ -32,6 +32,7 @@ class DayTokens:
     day: date
     input: int
     output: int
+    cost: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,16 @@ class AgentStat:
     output: int
     cost: float
     turns: int
+
+
+@dataclass(frozen=True)
+class SessionStat:
+    session_id: str
+    input: int
+    output: int
+    cost: float
+    turns: int
+    last_ts_ms: int
 
 
 @dataclass(frozen=True)

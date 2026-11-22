@@ -12,13 +12,16 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Footer, Static
 
+from . import export
 from .config import Settings
 from .data import db, queries
 from .data.queries import MsgUsage
 from .format import format_cost, format_percent, format_tokens
 from .widgets.agents_table import AgentsTable
+from .widgets.budget_bar import BudgetBar
 from .widgets.heatmap import Heatmap
 from .widgets.models_table import ModelsTable
+from .widgets.session_live import SessionLive
 from .widgets.stat_card import StatCard
 from .widgets.tokens_by_day import TokensByDay
 
@@ -39,6 +42,7 @@ class UsageApp(App):
     BINDINGS = [
         Binding("q", "quit", "Salir"),
         Binding("r", "refresh", "Refrescar"),
+        Binding("e", "export", "Exportar"),
         Binding("1", "set_range('7')", "7 días"),
         Binding("2", "set_range('30')", "30 días"),
         Binding("3", "set_range('90')", "90 días"),
@@ -68,6 +72,9 @@ class UsageApp(App):
             yield StatCard(id="card-output")
             yield StatCard(id="card-turns")
             yield StatCard(id="card-cost")
+        with Vertical(id="status"):
+            yield BudgetBar(id="budget")
+            yield SessionLive(id="session")
         with Horizontal(id="main"):
             with Vertical(id="left"):
                 yield TokensByDay(id="tokens-by-day")
@@ -79,6 +86,8 @@ class UsageApp(App):
 
     # ---- ciclo de vida ------------------------------------------------
     def on_mount(self) -> None:
+        if self.settings.config_error:
+            self.notify(self.settings.config_error, severity="warning", timeout=10)
         self.refresh_data()
         self.set_interval(self.settings.refresh_seconds, self.refresh_data)
 
@@ -99,12 +108,32 @@ class UsageApp(App):
     def action_refresh(self) -> None:
         self.refresh_data(force=True)
 
+    def action_export(self) -> None:
+        """Escribe CSV y Markdown del rango actual en la carpeta de trabajo."""
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        label = "todo" if self._days is None else f"últimos {self._days} días"
+        csv_path = Path.cwd() / f"opencode-usage-{stamp}.csv"
+        md_path = Path.cwd() / f"opencode-usage-{stamp}.md"
+        try:
+            export.export_csv(csv_path, queries.tokens_by_day(self._msgs))
+            export.export_markdown(
+                md_path,
+                label,
+                queries.totals(self._msgs),
+                queries.by_model(self._msgs),
+                queries.by_agent(self._msgs),
+            )
+        except OSError as exc:
+            self.notify(f"no se pudo exportar: {exc}", severity="error")
+            return
+        self.notify(f"exportado: {csv_path.name} y {md_path.name}")
+
     # ---- datos --------------------------------------------------------
     def _db_fingerprint(self) -> tuple:
         """Mtime y tamaño de la DB y su -wal. Cambian solo al escribir OpenCode."""
-        db = Path(self.settings.db_path)
+        db_path = Path(self.settings.db_path)
         parts = []
-        for p in (db, Path(f"{db}-wal")):
+        for p in (db_path, Path(f"{db_path}-wal")):
             try:
                 st = p.stat()
                 parts.append((st.st_mtime_ns, st.st_size))
@@ -115,12 +144,14 @@ class UsageApp(App):
     def refresh_data(self, force: bool = False) -> None:
         fp = self._db_fingerprint()
         now = time.monotonic()
-        # Sin cambios en la DB: no releer. Cada 60 s igual, para que la ventana de días avance.
+        # Sin cambios en la DB no se relee. Cada 60 s se relee igual,
+        # para que la ventana de días avance.
         if not force and fp == self._fingerprint and now - self._last_full < 60:
             return
         self._fingerprint = fp
         self._last_full = now
         start = queries.since_ms(self._days)
+        budget = self.settings.monthly_budget_usd
         try:
             con = db.open_readonly(self.settings.db_path)
         except (FileNotFoundError, sqlite3.Error) as exc:
@@ -130,6 +161,10 @@ class UsageApp(App):
             return
         with con:
             self._msgs = queries.load_messages(con, start)
+            month_msgs = (
+                queries.load_messages(con, queries.month_start_ms())
+                if budget is not None else []
+            )
 
         t = queries.totals(self._msgs)
         cards = {
@@ -168,6 +203,12 @@ class UsageApp(App):
         )
         self.query_one("#agents", AgentsTable).set_stats(
             queries.by_agent(self._msgs)
+        )
+        self.query_one("#budget", BudgetBar).set_budget(
+            queries.totals(month_msgs).cost, budget
+        )
+        self.query_one("#session", SessionLive).set_session(
+            queries.current_session(self._msgs)
         )
         self.query_one("#updated", Static).update(
             f"[dim]actualizado {datetime.now().strftime('%H:%M:%S')}[/dim]"

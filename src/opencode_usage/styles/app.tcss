@@ -43,6 +43,16 @@ StatCard {
     content-align: left middle;
 }
 
+#status {
+    height: 2;
+    padding: 0 2;
+}
+
+#status Static {
+    height: 1;
+    width: 100%;
+}
+
 #main {
     height: 1fr;
     padding: 0 1;

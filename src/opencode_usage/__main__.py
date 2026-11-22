@@ -3,37 +3,42 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 from pathlib import Path
 
 from .app import UsageApp
-from .config import DEFAULT_DB, Settings
+from .config import DEFAULT_DB, Settings, config_file, load_settings
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="opencode-usage",
         description="Dashboard en terminal del uso de tokens de OpenCode",
+        epilog=f"Configuración opcional: {config_file()}",
     )
     parser.add_argument(
-        "--db", type=Path, default=DEFAULT_DB,
-        help="ruta a opencode.db (default: %(default)s)",
+        "--db", type=Path, default=None,
+        help=f"ruta a opencode.db (default: {DEFAULT_DB})",
     )
     parser.add_argument(
-        "--refresh", type=float, default=5.0, metavar="SEG",
-        help="segundos entre refrescos en vivo (default: %(default)s)",
+        "--refresh", type=float, default=None, metavar="SEG",
+        help="segundos entre revisiones de cambios (default: 5)",
     )
     parser.add_argument(
-        "--days", type=int, default=30, metavar="N",
-        help="ventana inicial en días; 0 = todo (default: %(default)s)",
+        "--days", type=int, default=None, metavar="N",
+        help="ventana inicial en días; 0 = todo (default: 30)",
     )
     args = parser.parse_args()
 
-    settings = Settings(
-        db_path=args.db,
-        refresh_seconds=args.refresh,
-        default_days=None if args.days == 0 else args.days,
-    )
-    UsageApp(settings).run()
+    settings: Settings = load_settings()
+    changes: dict[str, object] = {}
+    if args.db is not None:
+        changes["db_path"] = args.db
+    if args.refresh is not None:
+        changes["refresh_seconds"] = args.refresh
+    if args.days is not None:
+        changes["default_days"] = None if args.days == 0 else args.days
+    UsageApp(replace(settings, **changes)).run()
 
 
 if __name__ == "__main__":

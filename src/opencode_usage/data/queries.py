@@ -23,7 +23,14 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
-from .models import AgentStat, DayTokens, HeatCell, ModelStat, TokenTotals
+from .models import (
+    AgentStat,
+    DayTokens,
+    HeatCell,
+    ModelStat,
+    SessionStat,
+    TokenTotals,
+)
 
 
 @dataclass(frozen=True)
@@ -46,6 +53,29 @@ def since_ms(days: int | None) -> int:
     if days is None:
         return 0
     return int((time.time() - days * 86_400) * 1000)
+
+
+def month_start_ms(now: datetime | None = None) -> int:
+    """Inicio del mes calendario actual, hora local, en ms epoch."""
+    now = now or datetime.now()
+    return int(now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+               .timestamp() * 1000)
+
+
+def current_session(msgs: list[MsgUsage]) -> SessionStat | None:
+    """Sesión con el mensaje más reciente y su resumen."""
+    if not msgs:
+        return None
+    last = max(msgs, key=lambda m: m.ts_ms)
+    mine = [m for m in msgs if m.session_id == last.session_id]
+    return SessionStat(
+        session_id=last.session_id,
+        input=sum(m.input for m in mine),
+        output=sum(m.output for m in mine),
+        cost=sum(m.cost for m in mine),
+        turns=len(mine),
+        last_ts_ms=last.ts_ms,
+    )
 
 
 def load_messages(con: sqlite3.Connection, start_ms: int = 0) -> list[MsgUsage]:
@@ -106,18 +136,19 @@ def tokens_by_day(msgs: list[MsgUsage]) -> list[DayTokens]:
     """Agrega por día local, incluye días vacíos entre medio."""
     if not msgs:
         return []
-    buckets: dict[date, list[int]] = {}
+    buckets: dict[date, list[float]] = {}
     for m in msgs:
         day = datetime.fromtimestamp(m.ts_ms / 1000).date()
-        b = buckets.setdefault(day, [0, 0])
+        b = buckets.setdefault(day, [0, 0, 0.0])
         b[0] += m.input
         b[1] += m.output
+        b[2] += m.cost
     first, last = min(buckets), max(buckets)
     out: list[DayTokens] = []
     day = first
     while day <= last:
-        b = buckets.get(day, [0, 0])
-        out.append(DayTokens(day=day, input=b[0], output=b[1]))
+        b = buckets.get(day, [0, 0, 0.0])
+        out.append(DayTokens(day=day, input=int(b[0]), output=int(b[1]), cost=b[2]))
         day += timedelta(days=1)
     return out
 

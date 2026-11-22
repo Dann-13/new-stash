@@ -12,6 +12,20 @@ HEIGHT = 8  # filas de la gráfica
 
 _INPUT_STYLE = "#8b949e"
 _OUTPUT_STYLE = "#58a6ff"
+_COST_STYLE = "#d2a8ff"
+_SPARK = "▁▂▃▄▅▆▇█"
+
+
+def _cost_line(days: list[DayTokens]) -> str:
+    """Una celda por día: altura proporcional al costo de ese día."""
+    peak = max(d.cost for d in days)
+    if peak <= 0:
+        return "·" * len(days)
+    levels = len(_SPARK) - 1
+    return "".join(
+        _SPARK[round(d.cost / peak * levels)] if d.cost > 0 else "·"
+        for d in days
+    )
 
 
 class TokensByDay(Static):
@@ -70,7 +84,11 @@ class TokensByDay(Static):
         text.append(f"{days[0].day.strftime('%m-%d'):>8} ", style="dim")
         text.append(f"{days[-1].day.strftime('%m-%d')}", style="dim")
         text.append("\n")
+        text.append(" " * 8, style="dim")
+        text.append(_cost_line(days), style=_COST_STYLE)
+        text.append("\n")
         text.append("  ", style="dim")
         text.append("■ output ", style=_OUTPUT_STYLE)
-        text.append("■ input", style=_INPUT_STYLE)
+        text.append("■ input ", style=_INPUT_STYLE)
+        text.append("▁ costo/día", style=_COST_STYLE)
         return text
