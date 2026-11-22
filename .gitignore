@@ -6,3 +6,7 @@ dist/
 build/
 .pytest_cache/
 .ruff_cache/
+
+# exports generados por la tecla e (no commitear)
+opencode-usage-*.csv
+opencode-usage-*.md

@@ -6,6 +6,21 @@ tokens por modelo, por agente, por día, heatmap de actividad y costo.
 Lee en modo solo lectura la base de datos local de OpenCode
 (`~/.local/share/opencode/opencode.db`). No escribe nada.
 
+## Documentación
+
+Las convenciones del proyecto viven en [`docs/`](docs/) y en
+[`AGENTS.md`](AGENTS.md) (guía de entrada para agentes de IA y humanos).
+Léelas antes de cambiar código:
+
+| Tema | Archivo |
+|---|---|
+| Estructura y capas | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Estilo y convenciones | [docs/CONVENTIONS.md](docs/CONVENTIONS.md) |
+| Traducciones / i18n | [docs/I18N.md](docs/I18N.md) |
+| Tests y CI | [docs/TESTING.md](docs/TESTING.md) |
+| Seguridad y privacidad | [docs/SECURITY.md](docs/SECURITY.md) |
+| Setup, versiones, roadmap | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
+
 ## Requisitos
 
 - Python 3.11+
@@ -167,6 +182,8 @@ src/opencode_usage/
   widgets/         tarjetas, gráfica diaria, heatmap, tablas, presupuesto, sesión
   styles/app.tcss  estilos
 tests/             fixtures SQLite, pruebas de queries, config y app
+docs/              convenciones: arquitectura, estilo, i18n, tests, seguridad
+AGENTS.md          guía de entrada para agentes de IA
 ```
 
 ## Desarrollo
