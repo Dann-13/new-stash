@@ -7,6 +7,8 @@ name = "opencode-usage"
 version = "0.5.0"
 description = "Dashboard en terminal para el uso de tokens de OpenCode"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
     "textual>=0.80.0",

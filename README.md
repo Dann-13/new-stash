@@ -7,6 +7,7 @@
 [![Release](https://img.shields.io/github/v/release/Dann-13/new-stash)](https://github.com/Dann-13/new-stash/releases)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Textual](https://img.shields.io/badge/TUI-Textual-6c4bb6)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 100% terminal (TUI con [Textual](https://textual.textualize.io/)). Lee la base de
 datos local de OpenCode en **modo solo lectura**: no escribe nada, no envía
@@ -227,3 +228,7 @@ Las convenciones del proyecto viven en [`docs/`](docs/) y en
 | Tests y CI | [docs/TESTING.md](docs/TESTING.md) |
 | Seguridad y privacidad | [docs/SECURITY.md](docs/SECURITY.md) |
 | Setup, versiones, roadmap | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
+
+## Licencia
+
+[MIT](LICENSE) © 2026 Dann-13. Uso libre, sin garantía.
